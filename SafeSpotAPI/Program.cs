@@ -15,7 +15,21 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erreur capturée: {ex}");
+        await context.Response.WriteAsync($"Erreur interne : {ex.Message}");
+    }
+});
+
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
