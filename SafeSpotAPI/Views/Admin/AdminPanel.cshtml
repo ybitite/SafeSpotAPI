@@ -42,24 +42,24 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var report in Model.PendingReports)
-                    {
-                        <tr>
-                            <td>@report.Id</td>
-                            <td>@report.Description</td>
-                            <td>@report.Date_Time</td>
-                            <td>
-                                <form action="https://localhost:7095/api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
-                                    <textarea name="comment" class="form-control" placeholder="Commentaire" rows="1" required></textarea>
-                                    <button type="submit" class="btn btn-success">Valider</button>
-                                    <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
-                                </form>
+                <!--<tbody>
+                @foreach (var report in Model.PendingReports)
+                {
+                             <tr>
+                                 <td>@report.Id</td>
+                                 <td>@report.Description</td>
+                                 <td>@report.Date_Time</td>
+                                 <td>
+                                     <form action="https://localhost:7095/api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
+                                         <textarea name="comment" class="form-control" placeholder="Commentaire" rows="1" required></textarea>
+                                         <button type="submit" class="btn btn-success">Valider</button>
+                                         <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
+                                     </form>
 
-                            </td>       
-                        </tr>
-                    }
-                </tbody>
+                                 </td>
+                             </tr>
+                }
+                 </tbody>-->
             </table>
         </div>
 
@@ -77,22 +77,23 @@
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var validated in Model.ValidatedReports)
-                    {
-                        <tr>
-                            <td>@validated.Id</td>
-                            <td>@validated.Description</td>
-                            <td>@validated.Comment</td>
-                            <td>@validated.Date_Time</td>
-                            <td>@validated.Date_Time_Validation</td>
-                            <td class="text-end">
-                                <button type="button" class="btn btn-warning btn-sm" onclick="deleteValidatedReport(@validated.Id)">Supprimer</button>
-                            </td>
+                <!--                <tbody>
+                @foreach (var validated in Model.ValidatedReports)
+                {
+                            <tr>
+                                <td>@validated.Id</td>
+                                <td>@validated.Description</td>
+                                <td>@validated.Comment</td>
+                                <td>@validated.Date_Time</td>
+                                <td>@validated.Date_Time_Validation</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="deleteValidatedReport(@validated.Id)">Supprimer</button>
+                                </td>
 
-                        </tr>
-                    }
-                </tbody>
+                            </tr>
+                }
+                </tbody>-->
+
             </table>
         </div>
     </div>
