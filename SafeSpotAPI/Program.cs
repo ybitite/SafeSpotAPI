@@ -10,24 +10,20 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
 
-app.Use(async (context, next) =>
+using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ReportDbContext>();
     try
     {
-        await next();
+        dbContext.Database.CanConnect();
+        Console.WriteLine("Connexion à la base de données réussie !");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Erreur capturée: {ex}");
-        await context.Response.WriteAsync($"Erreur interne : {ex.Message}");
+        Console.WriteLine($"Erreur de connexion à la base : {ex.Message}");
     }
-});
-
+}
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();

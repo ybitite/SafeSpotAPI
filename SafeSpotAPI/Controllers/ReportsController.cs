@@ -21,18 +21,18 @@ namespace SafeSpotAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+        public async Task<ActionResult<IEnumerable<ReportValidated>>> GetReports()
         {
-            return await _db.Reports.ToListAsync();
+            return await _db.ValidatedReports.ToListAsync();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Report>> GetReport(int id)
+        public async Task<ActionResult<ReportValidated>> GetReport(int id)
         {
-            var report = await _db.Reports.FindAsync(id);
-            if (report == null)
+            var reportValidated = await _db.ValidatedReports.FindAsync(id);
+            if (reportValidated == null)
                 return NotFound();
-            return report;
+            return reportValidated;
         }
 
         [HttpPost]
