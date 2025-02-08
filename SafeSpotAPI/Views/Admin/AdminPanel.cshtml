@@ -50,7 +50,7 @@
                             <td>@report.Description</td>
                             <td>@report.Date_Time</td>
                             <td>
-                                <form action="https://localhost:7095/api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
+                                <form action="https://safespotapi20250207214631.azurewebsites.net/api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
                                     <textarea name="comment" class="form-control" placeholder="Commentaire" rows="1" required></textarea>
                                     <button type="submit" class="btn btn-success">Valider</button>
                                     <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
