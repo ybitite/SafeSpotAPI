@@ -24,11 +24,36 @@
             vertical-align: middle;
         }
 
+        .report-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            cursor: pointer; /* Make the thumbnail clickable */
+        }
+
+        /* Modal styles */
+        .modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+        }
+
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-body img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 class="text-center mb-4"></h2>
+        <h2 class="text-center mb-4">Admin Panel</h2>
 
         <!-- Rapports en attente -->
         <div class="card p-3">
@@ -39,25 +64,31 @@
                         <th>ID</th>
                         <th>Description</th>
                         <th>Date</th>
+                        <th>Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var report in Model.PendingReports)
                     {
-                        <tr>
-                            <td>@report.Id</td>
-                            <td>@report.Description</td>
-                            <td>@report.Date_Time</td>
-                            <td>
-                                <form action="https://safespotapi20250207214631.azurewebsites.net/api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
-                                    <textarea name="comment" class="form-control" placeholder="Commentaire" rows="1" required></textarea>
-                                    <button type="submit" class="btn btn-success">Valider</button>
-                                    <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
-                                </form>
-
-                            </td>       
-                        </tr>
+                            <tr>
+                                <td>@report.Id</td>
+                                <td>@report.Description</td>
+                                <td>@report.Date_Time</td>
+                                <td>
+                                @if (!string.IsNullOrEmpty(report.Image))
+                                {
+                                            <img src="/uploads/@report.Image" alt="Report Image" class="report-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImageInModal('/uploads/@report.Image')" />
+                                }
+                                </td>
+                                <td>
+                                    <form action="api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
+                                        <textarea name="comment" class="form-control" placeholder="Commentaire" rows="1" required></textarea>
+                                        <button type="submit" class="btn btn-success">Valider</button>
+                                        <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
+                                    </form>
+                                </td>
+                            </tr>
                     }
                 </tbody>
             </table>
@@ -72,39 +103,56 @@
                         <th>ID</th>
                         <th>Description</th>
                         <th>Commentaire</th>
-                        <th>Date </th>
+                        <th>Date</th>
                         <th>Date Validation</th>
+                        <th>Image</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var validated in Model.ValidatedReports)
                     {
-                        <tr>
-                            <td>@validated.Id</td>
-                            <td>@validated.Description</td>
-                            <td>@validated.Comment</td>
-                            <td>@validated.Date_Time</td>
-                            <td>@validated.Date_Time_Validation</td>
-                            <td class="text-end">
-                                <button type="button" class="btn btn-warning btn-sm" onclick="deleteValidatedReport(@validated.Id)">Supprimer</button>
-                            </td>
-
-                        </tr>
+                            <tr>
+                                <td>@validated.Id</td>
+                                <td>@validated.Description</td>
+                                <td>@validated.Comment</td>
+                                <td>@validated.Date_Time</td>
+                                <td>@validated.Date_Time_Validation</td>
+                                <td>
+                                @if (!string.IsNullOrEmpty(validated.Image))
+                                {
+                                            <img src="/uploads/@validated.Image" alt="Validated Report Image" class="report-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImageInModal('/uploads/@validated.Image')" />
+                                }
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="deleteValidatedReport(@validated.Id)">Supprimer</button>
+                                </td>
+                            </tr>
                     }
                 </tbody>
             </table>
+        </div>
+
+        <!-- Modal for displaying the large image -->
+        <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <img src="" alt="Large Image" id="largeImage" />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function deleteReport(id) {
-            fetch(`https://safespotapi20250207214631.azurewebsites.net/api/reports/${id}`, { // Injection de l'ID dans l'URL
+            fetch(`https://safespotapi20250207214631.azurewebsites.net/api/reports/${id}`, {
                 method: "DELETE"
             }).then(response => {
                 if (response.ok) {
                     alert("Report supprimé !");
-                    location.reload(); // Actualiser la page si nécessaire
+                    location.reload();
                 } else {
                     alert("Erreur lors de la suppression");
                 }
@@ -112,16 +160,20 @@
         }
 
         function deleteValidatedReport(id) {
-            fetch(`https://safespotapi20250207214631.azurewebsites.net/api/reports/DeleteValidated/${id}`, { // Injection de l'ID dans l'URL
+            fetch(`https://safespotapi20250207214631.azurewebsites.net/api/reports/DeleteValidated/${id}`, {
                 method: "DELETE"
             }).then(response => {
                 if (response.ok) {
                     alert("Report supprimé !");
-                    location.reload(); // Actualiser la page si nécessaire
+                    location.reload();
                 } else {
                     alert("Erreur lors de la suppression");
                 }
             }).catch(error => console.error("Erreur :", error));
+        }
+
+        function showImageInModal(imageUrl) {
+            document.getElementById('largeImage').src = imageUrl;
         }
     </script>
 </body>

@@ -8,11 +8,12 @@ namespace SafeSpotAPI.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
         public double Longitude { get; set; }
         public double Latitude { get; set; }
         public DateTime Date_Time { get; set; }
-        public string Description { get; set; }
-        public string Image { get; set; }
-        public string Video { get; set; }
+        public string? Description { get; set; } // Make Description nullable
+        public string? Image { get; set; } // Make Image nullable
+        public string? Video { get; set; } // Make Video nullable
     }
 }

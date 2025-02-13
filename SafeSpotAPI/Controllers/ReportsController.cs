@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SafeSpotAPI.Data;
@@ -13,11 +14,13 @@ namespace SafeSpotAPI.Controllers
     {
         private readonly ReportDbContext _db;
         private readonly ILogger<ReportsController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ReportsController(ReportDbContext contextDb, ILogger<ReportsController> logger)
+        public ReportsController(ReportDbContext contextDb, ILogger<ReportsController> logger, IWebHostEnvironment webHostEnvironment)
         {
             _db = contextDb;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -36,13 +39,56 @@ namespace SafeSpotAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Report>> AddReport([FromBody] Report report)
+        public async Task<ActionResult<Report>> AddReport([FromForm] Report report, IFormFile? image)
         {
+            _logger.LogInformation("AddReport action called.");
+
             if (report == null)
+            {
+                _logger.LogError("AddReport: report is null.");
                 return BadRequest("Le rapport ne peut pas être vide");
+            }
+
+            _logger.LogInformation($"AddReport: Report data - Description: {report.Description}, Longitude: {report.Longitude}, Latitude: {report.Latitude}, Date_Time: {report.Date_Time}");
+
+            if (image != null && image.Length > 0)
+            {
+                _logger.LogInformation($"AddReport: Image received - FileName: {image.FileName}, Length: {image.Length}");
+
+                // Generate a unique file name WITH the extension
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+                // Correct: Use fileName in filePath
+                var filePath = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot", "uploads", fileName);
+
+                // Create the directory if it doesn't exist
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                // Save the file to the server
+                try
+                {
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await image.CopyToAsync(fileStream);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error saving image to disk.");
+                    return StatusCode(500, "Error saving image."); // Return an error to the client
+                }
+
+                // Store the file name in the report
+                report.Image = fileName;
+            }
+            else
+            {
+                _logger.LogInformation("AddReport: No image received.");
+            }
 
             _db.Reports.Add(report);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation($"AddReport: Report added successfully - ID: {report.Id}");
 
             return CreatedAtAction(nameof(GetReport), new { id = report.Id }, report);
         }
@@ -87,7 +133,7 @@ namespace SafeSpotAPI.Controllers
             await _db.SaveChangesAsync();
 
             // Redirection vers la page d'administration après validation
-            return Redirect("https://localhost:7095/admin");
+            return Redirect("https://safespotapi20250207214631.azurewebsites.net/admin");
         }
 
         [HttpDelete("{id}")]
@@ -106,7 +152,7 @@ namespace SafeSpotAPI.Controllers
         public async Task<IActionResult> DeleteReportValidated(int id)
         {
             var reportValidated = await _db.ValidatedReports.FindAsync(id);
-            if(reportValidated == null)
+            if (reportValidated == null)
                 return NotFound();
 
             _db.ValidatedReports.Remove(reportValidated);
