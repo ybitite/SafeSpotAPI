@@ -44,10 +44,16 @@
             align-items: center;
         }
 
-        .modal-body img {
-            max-width: 90%;
-            max-height: 90vh;
-            object-fit: contain;
+            .modal-body img {
+                max-width: 90%;
+                max-height: 90vh;
+                object-fit: contain;
+            }
+
+        .description-textarea {
+            width: 100%; /* Make the textarea take up the full width of the cell */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            resize: vertical; /* Allow vertical resizing only */
         }
     </style>
 </head>
@@ -62,33 +68,42 @@
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
-                        <th>Description</th>
                         <th>Date</th>
                         <th>Image</th>
+                        <th>Audio</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var report in Model.PendingReports)
                     {
-                            <tr>
-                                <td>@report.Id</td>
-                                <td>@report.Description</td>
-                                <td>@report.Date_Time</td>
-                                <td>
+                        <tr>
+                            <td>@report.Id</td>
+                            <td>@report.Date_Time</td>
+                            <td>
                                 @if (!string.IsNullOrEmpty(report.Image))
                                 {
-                                            <img src="/uploads/@report.Image" alt="Report Image" class="report-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImageInModal('/uploads/@report.Image')" />
+                                    <img src="/uploads/@report.Image" alt="Report Image" class="report-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImageInModal('/uploads/@report.Image')" />
                                 }
-                                </td>
-                                <td>
-                                    <form action="api/reports/validate/@report.Id" method="post" class="d-flex align-items-center gap-2">
-                                        <textarea name="comment" class="form-control" placeholder="Commentaire" rows="1" required></textarea>
-                                        <button type="submit" class="btn btn-success">Valider</button>
-                                        <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
-                                    </form>
-                                </td>
-                            </tr>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(report.Audio))
+                                {
+                                    <audio controls>
+                                        <source src="/uploads/@report.Audio" type="audio/aac">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                }
+                            </td>
+                            <td>
+                                <form id="validate-form-@report.Id" action="api/reports/validate/@report.Id" method="post" class="actions-container">
+                                    <textarea name="description" id="description-@report.Id" class="form-control" placeholder="Description" rows="1" required>@report.Description</textarea> <br>
+                                    <textarea name="comment" id="comment-@report.Id" class="form-control" placeholder="Commentaire" rows="1" required></textarea><br>
+                                    <button type="submit" class="btn btn-success">Valider</button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteReport(@report.Id)">Rejeter</button>
+                                </form>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -105,6 +120,7 @@
                         <th>Commentaire</th>
                         <th>Date</th>
                         <th>Date Validation</th>
+                        <th>Audio</th>
                         <th>Image</th>
                         <th></th>
                     </tr>
@@ -112,22 +128,31 @@
                 <tbody>
                     @foreach (var validated in Model.ValidatedReports)
                     {
-                            <tr>
-                                <td>@validated.Id</td>
-                                <td>@validated.Description</td>
-                                <td>@validated.Comment</td>
-                                <td>@validated.Date_Time</td>
-                                <td>@validated.Date_Time_Validation</td>
-                                <td>
+                        <tr id="validated-row-@validated.Id">
+                            <td>@validated.Id</td>
+                            <td>@validated.Description</td>
+                            <td>@validated.Comment</td>
+                            <td>@validated.Date_Time</td>
+                            <td>@validated.Date_Time_Validation</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(validated.Audio))
+                                {
+                                    <audio controls>
+                                        <source src="/uploads/@validated.Audio" type="audio/aac">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                }
+                            </td>
+                            <td>
                                 @if (!string.IsNullOrEmpty(validated.Image))
                                 {
-                                            <img src="/uploads/@validated.Image" alt="Validated Report Image" class="report-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImageInModal('/uploads/@validated.Image')" />
+                                    <img src="/uploads/@validated.Image" alt="Validated Report Image" class="report-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImageInModal('/uploads/@validated.Image')" />
                                 }
-                                </td>
-                                <td class="text-end">
-                                    <button type="button" class="btn btn-warning btn-sm" onclick="deleteValidatedReport(@validated.Id)">Supprimer</button>
-                                </td>
-                            </tr>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-warning btn-sm" onclick="deleteValidatedReport(@validated.Id)">Supprimer</button>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -174,6 +199,33 @@
 
         function showImageInModal(imageUrl) {
             document.getElementById('largeImage').src = imageUrl;
+        }
+
+        function validateReport(event, id) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const form = document.getElementById(`validate-form-${id}`);
+            const comment = document.getElementById(`comment-${id}`).value;
+            // Get the description from the textarea inside the form
+            const description = document.getElementById(`description-${id}`).value;
+
+            fetch(`https://safespotapi20250207214631.azurewebsites.net/api/reports/validate/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ comment: comment, description: description })
+            }).then(response => {
+                if (response.ok) {
+                    alert("Report validé !");
+                    // Remove the row from the pending table
+                    document.getElementById(`pending-row-${id}`).remove();
+                    // Add the row to the validated table (you'll need to fetch the validated report data)
+                    addReportToValidatedTable(id);
+                } else {
+                    alert("Erreur lors de la validation");
+                }
+            }).catch(error => console.error("Erreur :", error));
         }
     </script>
 </body>

@@ -14,6 +14,6 @@ namespace SafeSpotAPI.Models
         public DateTime Date_Time { get; set; }
         public string? Description { get; set; } // Make Description nullable
         public string? Image { get; set; } // Make Image nullable
-        public string? Video { get; set; } // Make Video nullable
+        public string? Audio { get; set; } // Make Audio nullable
     }
 }

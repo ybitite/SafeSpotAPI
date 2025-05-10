@@ -14,7 +14,7 @@ namespace SafeSpotAPI.Models
         public DateTime Date_Time { get; set; }
         public string? Description { get; set; }
         public string? Image { get; set; }
-        public string? Video { get; set; }
+        public string? Audio { get; set; }
         public string? Comment { get; set; }
         public DateTime Date_Time_Validation { get; set; }
     }

@@ -39,7 +39,7 @@ namespace SafeSpotAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Report>> AddReport([FromForm] Report report, IFormFile? image)
+        public async Task<ActionResult<Report>> AddReport([FromForm] Report report, IFormFile? image, IFormFile? audio)
         {
             _logger.LogInformation("AddReport action called.");
 
@@ -51,19 +51,16 @@ namespace SafeSpotAPI.Controllers
 
             _logger.LogInformation($"AddReport: Report data - Description: {report.Description}, Longitude: {report.Longitude}, Latitude: {report.Latitude}, Date_Time: {report.Date_Time}");
 
+            // Gestion de l'image
             if (image != null && image.Length > 0)
             {
                 _logger.LogInformation($"AddReport: Image received - FileName: {image.FileName}, Length: {image.Length}");
 
-                // Generate a unique file name WITH the extension
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
-                // Correct: Use fileName in filePath
                 var filePath = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot", "uploads", fileName);
 
-                // Create the directory if it doesn't exist
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                // Save the file to the server
                 try
                 {
                     using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -74,15 +71,44 @@ namespace SafeSpotAPI.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error saving image to disk.");
-                    return StatusCode(500, "Error saving image."); // Return an error to the client
+                    return StatusCode(500, "Error saving image.");
                 }
 
-                // Store the file name in the report
                 report.Image = fileName;
             }
             else
             {
                 _logger.LogInformation("AddReport: No image received.");
+            }
+
+            // Gestion de l'audio
+            if (audio != null && audio.Length > 0)
+            {
+                _logger.LogInformation($"AddReport: Audio received - FileName: {audio.FileName}, Length: {audio.Length}");
+
+                var audioFileName = Guid.NewGuid().ToString() + Path.GetExtension(audio.FileName);
+                var audioFilePath = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot", "uploads", audioFileName);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(audioFilePath));
+
+                try
+                {
+                    using (var fileStream = new FileStream(audioFilePath, FileMode.Create))
+                    {
+                        await audio.CopyToAsync(fileStream);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error saving audio to disk.");
+                    return StatusCode(500, "Error saving audio.");
+                }
+
+                report.Audio = audioFileName;
+            }
+            else
+            {
+                _logger.LogInformation("AddReport: No audio received.");
             }
 
             _db.Reports.Add(report);
@@ -92,7 +118,6 @@ namespace SafeSpotAPI.Controllers
 
             return CreatedAtAction(nameof(GetReport), new { id = report.Id }, report);
         }
-
         public class ValidateRequest
         {
             public string Comment { get; set; }
@@ -117,7 +142,7 @@ namespace SafeSpotAPI.Controllers
                 Date_Time = report.Date_Time,
                 Description = report.Description,
                 Image = report.Image,
-                Video = report.Video,
+                Audio = report.Audio,
                 Comment = request.Comment,
                 Date_Time_Validation = DateTime.UtcNow
             };

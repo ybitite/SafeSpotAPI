@@ -1,11 +1,11 @@
 {
   "dependencies": {
     "mssql1": {
-      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.ServiceLinker/locations/switzerlandnorth/connectors/ConnectionStringsDefaultConnection1_74ECE7F8F3",
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.ServiceLinker/locations/switzerlandnorth/connectors/ConnectionStringsDatabaseConnectionAzure_B45C576715",
       "secretStore": "LocalSecretsFile",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/promesseplus/databases/SafeSpotDb",
       "type": "mssql.azure",
-      "connectionId": "ConnectionStrings:DefaultConnection1",
+      "connectionId": "ConnectionStrings:DatabaseConnectionAzure",
       "dynamicId": null
     }
   }

@@ -1,8 +1,8 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SafeSpotAPI.Data;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,12 +26,20 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 // Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
 
+// Configuration du type MIME pour les fichiers .3gp
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".m4a"] = "audio/aac";
+
 // Enable static file serving
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider // Utilisation du ContentTypeProvider
+});
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
-    RequestPath = "/uploads"
+    RequestPath = "/uploads",
+    ContentTypeProvider = provider // Utilisation du ContentTypeProvider
 });
 
 app.UseRouting();
